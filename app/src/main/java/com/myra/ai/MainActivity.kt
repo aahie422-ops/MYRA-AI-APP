@@ -1,6 +1,4 @@
-
 package com.myra.ai
-
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognizerIntent
