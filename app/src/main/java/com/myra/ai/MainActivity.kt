@@ -1,10 +1,11 @@
+
 package com.myra.ai
 
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognizerIntent
-import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -40,13 +41,14 @@ private val NeonBlue = Color(0xFF35D9FF)
 private val PurpleBlue = Color(0xFF6965FF)
 
 class MainActivity : ComponentActivity() {
+
     private var speaker: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        speaker = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
+        speaker = android.speech.tts.TextToSpeech(this) { status ->
+            if (status == android.speech.tts.TextToSpeech.SUCCESS) {
                 speaker?.language = Locale("en", "IN")
             }
         }
@@ -57,7 +59,7 @@ class MainActivity : ComponentActivity() {
                     speak = { message ->
                         speaker?.speak(
                             message,
-                            TextToSpeech.QUEUE_FLUSH,
+                            android.speech.tts.TextToSpeech.QUEUE_FLUSH,
                             null,
                             "MYRA_GREETING"
                         )
@@ -89,6 +91,7 @@ private fun MyraApp(speak: (String) -> Unit) {
             ?.firstOrNull()
 
         listeningText = words ?: "I'M READY TO HELP"
+        micOn = false
     }
 
     fun greeting(): String {
@@ -98,6 +101,7 @@ private fun MyraApp(speak: (String) -> Unit) {
             in 12..16 -> "Good afternoon"
             else -> "Good evening"
         }
+
         return "$timeGreeting, Sir! Muje Jayesh Boss ne banaya hai aur mera naam MYRA hai. Main aapki kya madad kar sakti hoon?"
     }
 
@@ -106,7 +110,11 @@ private fun MyraApp(speak: (String) -> Unit) {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFF101A36), Background, Color(0xFF080B19))
+                    listOf(
+                        Color(0xFF101A36),
+                        Background,
+                        Color(0xFF080B19)
+                    )
                 )
             )
     ) {
@@ -127,6 +135,7 @@ private fun MyraApp(speak: (String) -> Unit) {
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 5.sp
                     )
+
                     Text(
                         "YOUR PERSONAL AI ASSISTANT",
                         color = NeonBlue,
@@ -159,8 +168,11 @@ private fun MyraApp(speak: (String) -> Unit) {
                                 CircleShape
                             )
                             .clickable {
-                                micOn = !micOn
                                 if (micOn) {
+                                    micOn = false
+                                    listeningText = "TAP TO CONNECT"
+                                } else {
+                                    micOn = true
                                     listeningText = "MYRA IS LISTENING"
                                     speak(greeting())
 
@@ -181,12 +193,13 @@ private fun MyraApp(speak: (String) -> Unit) {
                                                 "Boliye, main sun rahi hoon"
                                             )
                                         }
+
                                         speechLauncher.launch(intent)
                                     } catch (_: Exception) {
-                                        listeningText = "SPEECH SERVICE UNAVAILABLE"
+                                        micOn = false
+                                        listeningText =
+                                            "SPEECH SERVICE UNAVAILABLE"
                                     }
-                                } else {
-                                    listeningText = "TAP TO CONNECT"
                                 }
                             },
                         contentAlignment = Alignment.Center
@@ -215,15 +228,20 @@ private fun MyraApp(speak: (String) -> Unit) {
                             .padding(bottom = 28.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        BottomOption("⚙", "Settings") { page = "settings" }
-                        BottomOption("ⓘ", "About") { page = "about" }
+                        BottomOption("⚙", "Settings") {
+                            page = "settings"
+                        }
+
+                        BottomOption("ⓘ", "About") {
+                            page = "about"
+                        }
                     }
                 }
             }
 
             "settings" -> {
                 Column(
-                    Modifier
+                    modifier = Modifier
                         .fillMaxSize()
                         .padding(24.dp)
                 ) {
@@ -233,9 +251,13 @@ private fun MyraApp(speak: (String) -> Unit) {
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold
                     )
+
                     Spacer(Modifier.height(24.dp))
+
                     Text("PROFILE", color = Color.LightGray)
+
                     Spacer(Modifier.height(8.dp))
+
                     OutlinedTextField(
                         value = userName,
                         onValueChange = { userName = it },
@@ -243,27 +265,33 @@ private fun MyraApp(speak: (String) -> Unit) {
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
+
                     Spacer(Modifier.height(24.dp))
+
                     Text(
                         "PERMISSIONS",
                         color = NeonBlue,
                         fontWeight = FontWeight.Bold
                     )
+
+                    Spacer(Modifier.height(8.dp))
+
                     Text(
-                        "Microphone, Camera, Phone, Contacts, SMS, Location, " +
-                            "Gallery & Files, Call Handling, Battery Optimization, " +
-                            "Display Over Other Apps, Notifications, Notification Access, " +
-                            "Accessibility and Default Assist.",
+                        "Microphone\nCamera\nPhone and calls\nContacts\nSMS\nLocation\nGallery and files\nCall handling\nBattery optimization\nDisplay over other apps\nNotifications\nNotification access\nAccessibility\nDefault assist",
                         color = Color.White,
-                        lineHeight = 25.sp
+                        lineHeight = 27.sp
                     )
+
                     Spacer(Modifier.height(12.dp))
+
                     Text(
                         "Permission controls will be connected in a later step.",
                         color = Color.LightGray,
                         fontSize = 12.sp
                     )
+
                     Spacer(Modifier.weight(1f))
+
                     Button(
                         onClick = { page = "home" },
                         modifier = Modifier.fillMaxWidth()
@@ -275,26 +303,31 @@ private fun MyraApp(speak: (String) -> Unit) {
 
             "about" -> {
                 Column(
-                    Modifier
+                    modifier = Modifier
                         .fillMaxSize()
                         .padding(24.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Hologram()
+
                     Text(
                         "MYRA AI",
                         color = NeonBlue,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold
                     )
+
                     Spacer(Modifier.height(12.dp))
+
                     Text(
                         "A personal voice assistant created by Jayesh Boss.",
                         color = Color.White,
                         fontSize = 16.sp
                     )
+
                     Spacer(Modifier.height(28.dp))
+
                     Button(onClick = { page = "home" }) {
                         Text("BACK")
                     }
@@ -307,15 +340,20 @@ private fun MyraApp(speak: (String) -> Unit) {
 @Composable
 private fun Hologram() {
     val transition = rememberInfiniteTransition(label = "hologram")
+
     val rotation by transition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(7000, easing = FastOutSlowInEasing),
+            animation = tween(
+                durationMillis = 7000,
+                easing = FastOutSlowInEasing
+            ),
             repeatMode = RepeatMode.Restart
         ),
         label = "rotation"
     )
+
     val pulse by transition.animateFloat(
         initialValue = 0.88f,
         targetValue = 1.08f,
@@ -337,7 +375,7 @@ private fun Hologram() {
 
         drawCircle(
             brush = Brush.radialGradient(
-                listOf(
+                colors = listOf(
                     Color(0x8835D9FF),
                     Color(0x44365DFF),
                     Color.Transparent
@@ -351,6 +389,7 @@ private fun Hologram() {
 
         for (i in 0..3) {
             val ringRadius = radius * (0.85f + i * 0.22f)
+
             drawCircle(
                 color = if (i % 2 == 0) NeonBlue else PurpleBlue,
                 radius = ringRadius,
@@ -366,24 +405,35 @@ private fun Hologram() {
             startAngle = rotation,
             sweepAngle = 90f,
             useCenter = false,
-            topLeft = Offset(cx - radius * 1.3f, cy - radius * 1.3f),
+            topLeft = Offset(
+                cx - radius * 1.3f,
+                cy - radius * 1.3f
+            ),
             size = Size(radius * 2.6f, radius * 2.6f),
-            style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+            style = Stroke(
+                width = 3.dp.toPx(),
+                cap = StrokeCap.Round
+            )
         )
 
         drawCircle(
             brush = Brush.radialGradient(
-                listOf(Color.White, NeonBlue, Color(0xFF2455CB))
+                colors = listOf(
+                    Color.White,
+                    NeonBlue,
+                    Color(0xFF2455CB)
+                )
             ),
             radius = radius * 0.72f,
             center = Offset(cx, cy)
         )
 
         for (i in 0..11) {
-            val angle = Math.toRadians((rotation + i * 30.0))
+            val angle = Math.toRadians(rotation + i * 30.0)
             val orbit = radius * 1.55f
             val x = cx + kotlin.math.cos(angle).toFloat() * orbit
             val y = cy + kotlin.math.sin(angle).toFloat() * orbit
+
             drawCircle(
                 color = NeonBlue.copy(alpha = 0.8f),
                 radius = 2.5.dp.toPx(),
@@ -402,11 +452,23 @@ private fun BottomOption(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .background(Color(0xFF17213B), RoundedCornerShape(18.dp))
+            .background(
+                Color(0xFF17213B),
+                RoundedCornerShape(18.dp)
+            )
             .clickable(onClick = onClick)
             .padding(horizontal = 26.dp, vertical = 12.dp)
     ) {
-        Text(symbol, fontSize = 24.sp, color = NeonBlue)
-        Text(label, color = Color.White, fontSize = 12.sp)
+        Text(
+            symbol,
+            fontSize = 24.sp,
+            color = NeonBlue
+        )
+
+        Text(
+            label,
+            color = Color.White,
+            fontSize = 12.sp
+        )
     }
 }
